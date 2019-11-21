@@ -8,13 +8,22 @@ class Genre(models.Model):
     name = models.CharField(max_length=100)
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_genres')
 
+    def __str__(self):
+        return self.name
+
 
 class Director(models.Model):
     name = models.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 
 class Actor(models.Model):
     name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Movie(models.Model):
@@ -23,14 +32,20 @@ class Movie(models.Model):
     score = models.FloatField()
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)
-    descriptrion = models.TextField()
+    description = models.TextField()
     genres = models.ManyToManyField(Genre, related_name='movies')
     directors = models.ManyToManyField(Director, related_name='movies')
     actors = models.ManyToManyField(Actor, related_name='movies')
 
+    def __str__(self):
+        return self.title
+
 
 class Hashtag(models.Model):
     tag = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.tag
 
 
 class Post(models.Model):
@@ -41,4 +56,6 @@ class Post(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='posts')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     hashtags = models.ManyToManyField(Hashtag, related_name='posts')
-    
+
+    def __str__(self):
+        return self.content
