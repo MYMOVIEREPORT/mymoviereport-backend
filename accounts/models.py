@@ -15,7 +15,7 @@ class User(AbstractUser):
         null=True
         )  # 나이를 validator로 검증, 선택 정보
     thumbnail = models.CharField(max_length=500)  # 썸네일 기본값 필요
-    genre_prefer = models.ManyToManyField(Genre, related_name='prefer_users')
+    # genre_prefer = models.ManyToManyField(Genre, related_name='prefer_users')
 
     def __str__(self):
         return self.username
