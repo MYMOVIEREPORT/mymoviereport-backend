@@ -6,7 +6,7 @@ from django.contrib.auth import settings
 
 class Genre(models.Model):
     name = models.CharField(max_length=100)
-    like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_genres')
+    # like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_genres')
 
     def __str__(self):
         return self.name

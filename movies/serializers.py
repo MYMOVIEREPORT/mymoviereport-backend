@@ -6,14 +6,13 @@ from .models import Genre, Director, Actor, Movie, Hashtag, Post
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = '__all__'
+        fields = ['id', 'username', ]
 
 
 class GenreSerializer(serializers.ModelSerializer):
-    like_users = serializers.SlugRelatedField(many=True, read_only=True, slug_field='username')
     class Meta:
         model = Genre
-        fields = ('like_users',)
+        fields = '__all__'
 
 
 class MovieSerializer(serializers.ModelSerializer):

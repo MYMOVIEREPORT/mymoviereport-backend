@@ -19,3 +19,11 @@ def users(request):
     users = get_user_model().objects.all()
     serializer = UserSerializer(users, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def genres(request):
+    genres = Genre.objects.all()
+    serializer = GenreSerializer(genres, many=True)
+    return JsonResponse(serializer.data, safe=False)
