@@ -19,5 +19,8 @@ def signup(request):
         password = serializer.validated_data.get('password')
         hashed_password = django_pbkdf2_sha256.hash(password)
         serializer.save(password=hashed_password)
-        return HttpResponse(status=200)
+        return JsonResponse({
+            'username': serializer.validated_data.get('username'),
+            'password': serializer.validated_data.get('password')
+            })
     return HttpResponse(status=400)  # 잘못된 입력에 따른 에러
