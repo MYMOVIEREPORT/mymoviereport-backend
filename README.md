@@ -21,3 +21,5 @@
 - 비밀번호 암호화하기
   - `passlib`를 install하고 `passlib.hash`내부에 존재하는 `django_pbkdf2_sha256`을 사용하여 암호화를 합니다.
   - `serializer`를 잠시 중단하고 password를 암호화한 뒤 `serializer`를 저장하면 완료!
+- 회원가입하면서 자동으로 로그인하는 토큰 넘겨주기
+  - `rest_framework_jwt.settings`에 있는 `api_settings`를 가지고 `jwt_payload_handler`와 `jwt_encode_handler`를 통해 자동으로 토큰을 생성하고 그를 JSON으로 넘겨줍니다.
