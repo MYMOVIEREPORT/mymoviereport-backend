@@ -1,3 +1,4 @@
+autopep8==1.4.4
 cffi==1.13.2
 Django==2.2.7
 django-appconf==1.0.3
@@ -6,6 +7,7 @@ djangorestframework==3.10.3
 djangorestframework-jwt==1.11.0
 passlib==1.7.1
 pilkit==2.0
+pycodestyle==2.5.0
 pycparser==2.19
 PyJWT==1.7.1
 pytz==2019.3
