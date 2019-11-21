@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny
 
 from .serializers import UserSerializer
 
+from passlib.hash import django_pbkdf2_sha256
+
 # Create your views here.
 
 
@@ -13,7 +15,9 @@ from .serializers import UserSerializer
 @permission_classes([AllowAny, ])
 def signup(request):
     serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
+    if serializer.is_valid(raise_exception=True):
+        password = serializer.validated_data.get('password')
+        hashed_password = django_pbkdf2_sha256.hash(password)
+        serializer.save(password=hashed_password)
         return HttpResponse(status=200)
     return HttpResponse(status=400)  # 잘못된 입력에 따른 에러
