@@ -13,7 +13,8 @@ from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny, ])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
 def users(request):
     users = get_user_model().objects.all()
     serializer = UserSerializer(users, many=True)
