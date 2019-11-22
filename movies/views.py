@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from .serializers import UserSerializer, GenreSerializer, DirectorSerializer, MovieSerializer
+from .serializers import UserSerializer, GenreSerializer, DirectorSerializer, ActorSerializer
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 # Create your views here.
@@ -37,4 +37,11 @@ def directors(request):
     directors = Director.objects.all()
     serializer = DirectorSerializer(directors, many=True)
     return JsonResponse(serializer.data, safe=False)
-    
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def actors(request):
+    actors = Actor.objects.all()
+    serializer = ActorSerializer(actors, many=True)
+    return JsonResponse(serializer.data, safe=False)
