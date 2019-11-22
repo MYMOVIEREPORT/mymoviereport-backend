@@ -6,8 +6,7 @@ from .models import Genre, Director, Actor, Movie, Hashtag, Post
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['id', 'username', ]
-
+        fields = ['id', 'username', 'email', 'age', 'thumbnail', ]
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
