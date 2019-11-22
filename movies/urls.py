@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('user/<int:user_id>/', views.user),
-    path('user-posts/<int:user_id>/', views.user_posts),
+    path('user/<int:user_id>/posts/', views.user_posts),
 
     path('genres/', views.genres),
     path('directors/', views.directors),
