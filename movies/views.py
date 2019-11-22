@@ -72,3 +72,11 @@ def user_posts(request, user_id):
     posts = user.posts.all()
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    serializer = PostSerializer(post)
+    return JsonResponse(serializer.data)

@@ -10,4 +10,6 @@ urlpatterns = [
     path('actors/', views.actors),
     path('movies/', views.movies),
     path('posts/', views.posts),
+
+    path('post/<int:post_id>/', views.post),
 ]
