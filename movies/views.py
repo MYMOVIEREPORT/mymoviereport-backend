@@ -68,6 +68,7 @@ def posts(request):
 @permission_classes([IsAuthenticated, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
 def user_posts(request, user_id):
-    posts = Post.objects.filter(id=user_id)
+    user = get_user_model().objects.filter(id=user_id)
+    posts = user.posts.all()
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
