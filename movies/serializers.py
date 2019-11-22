@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Genre, Director, Actor, Movie, Hashtag, Post
+from .models import Genre, Director, Actor, Movie, Post
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -33,31 +33,7 @@ class MovieSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class MovieSerializer(serializers.ModelSerializer):
+class PostSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Movie
-        fields = [
-                    'id', 'title', 'title_ko', 'score',
-                    'poster_url', 'video_url', 'description',
-                    'genres', 'directors', 'actors'
-        ]
-
-
-class MovieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = [
-                    'id', 'title', 'title_ko', 'score',
-                    'poster_url', 'video_url', 'description',
-                    'genres', 'directors', 'actors'
-        ]
-
-
-class MovieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = [
-                    'id', 'title', 'title_ko', 'score',
-                    'poster_url', 'video_url', 'description',
-                    'genres', 'directors', 'actors'
-        ]
+        model = Post
+        fields = '__all__'

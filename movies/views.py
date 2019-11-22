@@ -6,8 +6,8 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer, ActorSerializer,
-                        MovieSerializer)
+from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
+                        ActorSerializer, MovieSerializer, PostSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 # Create your views here.
@@ -54,3 +54,12 @@ def movies(request):
     movies = Movie.objects.all()
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def posts(request):
+    posts = Post.objects.filter(published=True)
+    serializer = PostSerializer(posts, many=True)
+    return JsonResponse(serializer.data, safe=False)
+    
