@@ -12,4 +12,6 @@ urlpatterns = [
     path('posts/', views.posts),
 
     path('post/<int:post_id>/', views.post),
+
+    path('update/db/', views.update_db),
 ]

@@ -6,7 +6,6 @@ from django.contrib.auth import settings
 
 class Genre(models.Model):
     name = models.CharField(max_length=100)
-    # like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_genres')
 
     def __str__(self):
         return self.name
@@ -33,7 +32,7 @@ class Movie(models.Model):
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)
     description = models.TextField()
-    genres = models.ManyToManyField(Genre, related_name='movies')
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, related_name='movies')
     directors = models.ManyToManyField(Director, related_name='movies')
     actors = models.ManyToManyField(Actor, related_name='movies')
 

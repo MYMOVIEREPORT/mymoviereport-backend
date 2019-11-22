@@ -1,4 +1,6 @@
 autopep8==1.4.4
+beautifulsoup4==4.8.1
+bs4==0.0.1
 certifi==2019.9.11
 cffi==1.13.2
 chardet==3.0.4
@@ -22,11 +24,13 @@ pycodestyle==2.5.0
 pycparser==2.19
 PyJWT==1.7.1
 pyparsing==2.4.5
+python-decouple==3.3
 pytz==2019.3
 requests==2.22.0
 ruamel.yaml==0.16.5
 ruamel.yaml.clib==0.2.0
 six==1.13.0
+soupsieve==1.9.5
 sqlparse==0.3.0
 uritemplate==3.0.0
 urllib3==1.25.7
