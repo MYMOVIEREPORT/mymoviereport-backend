@@ -70,4 +70,4 @@ def posts(request):
 def user_posts(request, user_id):
     posts = Post.objects.filter(id=user_id)
     serializer = PostSerializer(posts, many=True)
-    return JsonResponse(serializer.data)
+    return JsonResponse(serializer.data, safe=False)
