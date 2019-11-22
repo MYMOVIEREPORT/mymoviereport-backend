@@ -62,4 +62,12 @@ def posts(request):
     posts = Post.objects.filter(published=True)
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
-    
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def user_posts(request, user_id):
+    posts = Post.objects.filter(id=user_id)
+    serializer = PostSerializer(posts, many=True)
+    return JsonResponse(serializer.data)
