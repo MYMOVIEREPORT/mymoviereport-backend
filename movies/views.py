@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
-                          ActorSerializer, MovieSerializer, PostSerializer)
+                          ActorSerializer, MovieSerializer, PostSerializer,
+                          MovieDetailSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from django.shortcuts import render, redirect
@@ -60,6 +61,14 @@ def all_movies(request):
     movies = Movie.objects.all()
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def some_movie(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    serializer = MovieDetailSerializer(movie)
+    return JsonResponse(serializer.data)
 
 
 @api_view(['GET'])

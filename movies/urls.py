@@ -8,9 +8,11 @@ urlpatterns = [
     path('genres/', views.all_genres),
     path('directors/', views.all_directors),
     path('actors/', views.all_actors),
-    path('movies/', views.all_movies),
-    path('posts/', views.all_posts),
 
+    path('movies/', views.all_movies),
+    path('movie/<int:movie_id>/', views.some_movie),
+
+    path('posts/', views.all_posts),
     path('post/<int:post_id>/', views.some_post),
 
     path('update/db/', views.update_db),
