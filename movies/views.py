@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
-                        ActorSerializer, MovieSerializer, PostSerializer)
+                          ActorSerializer, MovieSerializer, PostSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from django.shortcuts import render, redirect
@@ -22,7 +22,7 @@ import requests
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
-def user(request, user_id):
+def user_detail(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     if request.user == user:
         serializer = UserSerializer(user)
@@ -32,7 +32,7 @@ def user(request, user_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def genres(request):
+def all_genres(request):
     genres = Genre.objects.all()
     serializer = GenreSerializer(genres, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -40,7 +40,7 @@ def genres(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def directors(request):
+def all_directors(request):
     directors = Director.objects.all()
     serializer = DirectorSerializer(directors, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -48,7 +48,7 @@ def directors(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def actors(request):
+def all_actors(request):
     actors = Actor.objects.all()
     serializer = ActorSerializer(actors, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -56,7 +56,7 @@ def actors(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def movies(request):
+def all_movies(request):
     movies = Movie.objects.all()
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -64,7 +64,7 @@ def movies(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def posts(request):
+def all_posts(request):
     posts = Post.objects.filter(published=True)
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -82,7 +82,7 @@ def user_posts(request, user_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def post(request, post_id):
+def some_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     serializer = PostSerializer(post)
     return JsonResponse(serializer.data)
@@ -99,10 +99,13 @@ def update_db(request):
 
     movie_res = requests.get(movie_url).json()
     for i in range(loop):
-        title = movie_res.get('movieListResult').get('movieList')[i].get('movieNmEn')
-        title_ko = movie_res.get('movieListResult').get('movieList')[i].get('movieNm')
-        
-        genre = movie_res.get('movieListResult').get('movieList')[i].get('repGenreNm')
+        title = movie_res.get('movieListResult').get(
+            'movieList')[i].get('movieNmEn')
+        title_ko = movie_res.get('movieListResult').get(
+            'movieList')[i].get('movieNm')
+
+        genre = movie_res.get('movieListResult').get(
+            'movieList')[i].get('repGenreNm')
         genre = Genre.objects.get_or_create(name=genre)[0]
 
         naver_id = config('NAVER_ID')
@@ -120,7 +123,8 @@ def update_db(request):
         if naver_res.get('items'):
             score = naver_res.get('items')[0].get('userRating')
 
-            directors = naver_res.get('items')[0].get('director').split('|')[:-1]
+            directors = naver_res.get('items')[0].get(
+                'director').split('|')[:-1]
             for director in directors:
                 director = Director.objects.get_or_create(name=director)[0]
 
@@ -154,7 +158,8 @@ def update_db(request):
         else:
             video_url = ''
 
-        movie, created = Movie.objects.get_or_create(title=title, title_ko=title_ko, score=score, poster_url=poster_url, video_url=video_url, genre=genre)
+        movie, created = Movie.objects.get_or_create(
+            title=title, title_ko=title_ko, score=score, poster_url=poster_url, video_url=video_url, genre=genre)
         if created:
             for director in directors:
                 director = get_object_or_404(Director, name=director)
@@ -162,5 +167,5 @@ def update_db(request):
             for actor in actors:
                 actor = get_object_or_404(Actor, name=actor)
                 movie.actors.add(actor)
-    
+
     return JsonResponse({'message': 'done!'})
