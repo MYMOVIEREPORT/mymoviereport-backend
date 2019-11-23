@@ -89,12 +89,34 @@ def user_posts(request, user_id):
     return JsonResponse(serializer.data, safe=False)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([AllowAny, ])
-def some_post(request, post_id):
+def post_detail(request, movie_id, post_id):
     post = get_object_or_404(Post, id=post_id)
-    serializer = PostSerializer(post)
-    return JsonResponse(serializer.data)
+    if request.method == 'GET':
+        serializer = PostSerializer(post)
+        return JsonResponse(serializer.data)
+    else:
+        if request.user == post.user:
+            if request.method == 'PUT':
+                post.title = request.data.dict().get('title')
+                post.content = request.data.dict().get('content')
+                post.score = request.data.dict().get('score')
+                post.published = request.data.dict().get('published')
+                post.image = request.data.dict().get('image')
+                for hashtag in post.hashtags.all():
+                    post.hashtags.remove(hashtag)
+                post_content = request.data.get('content').split(' ')
+                for word in post_content:
+                    if word.startswith('#'):
+                        hashtag = Hashtag.objects.get_or_create(tag=word)[0]
+                        post.hashtags.add(hashtag)
+                serializer = PostSerializer(post)
+                return JsonResponse(serializer.data)
+            else:
+                post.delete()
+                return JsonResponse({'message': '삭제가 완료되었습니다.'})
+    return HttpResponse('잘못된 요청입니다.', status=403)
 
 
 @api_view(['POST'])
@@ -195,4 +217,4 @@ def update_db(request):
                 actor = get_object_or_404(Actor, name=actor)
                 movie.actors.add(actor)
 
-    return JsonResponse({'message': 'done!'})
+    return JsonResponse({'message': 'DB가 갱신되었습니다!'})
