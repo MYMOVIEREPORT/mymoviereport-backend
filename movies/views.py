@@ -8,7 +8,7 @@ from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
                           ActorSerializer, MovieSerializer, PostSerializer,
-                          MovieDetailSerializer)
+                          MovieDetailSerializer, CreatePostSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from django.shortcuts import render, redirect
@@ -95,6 +95,24 @@ def some_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     serializer = PostSerializer(post)
     return JsonResponse(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def post_create(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    post = CreatePostSerializer(data=request.data)
+    if post.is_valid(raise_exception=True):
+        post_instance = post.save(movie_id=movie.id, user=request.user)
+        post_content = request.data.get('content').split(' ')
+        for word in post_content:
+            if word.startswith('#'):
+                hashtag = Hashtag.objects.get_or_create(tag=word)[0]
+                post_instance.hashtags.add(hashtag)
+        post = PostSerializer(instance=post_instance)
+        return JsonResponse(post.data)
+    return HttpResponse(status=400)
 
 
 @api_view(['PUT'])
