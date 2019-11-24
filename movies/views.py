@@ -145,7 +145,7 @@ def update_db(request):
     naver_secret = config('NAVER_SECRET')
     youtube_key = config('YOUTUBE_KEY')
 
-    for d in range(1):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.
+    for d in range(2):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
             'boxOfficeResult').get('weeklyBoxOfficeList')
