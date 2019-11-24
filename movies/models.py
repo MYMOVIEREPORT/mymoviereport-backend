@@ -33,7 +33,9 @@ class Movie(models.Model):
     video_url = models.CharField(max_length=500, null=True)
     description = models.TextField()
     genre = models.ForeignKey(
-        Genre, on_delete=models.CASCADE, related_name='movies')
+        Genre,
+        on_delete=models.CASCADE,
+        related_name='movies')
     directors = models.ManyToManyField(Director, related_name='movies')
     actors = models.ManyToManyField(Actor, related_name='movies')
 
@@ -55,9 +57,12 @@ class Post(models.Model):
     published = models.BooleanField()
     image = models.CharField(max_length=200)
     movie = models.ForeignKey(
-        Movie, on_delete=models.CASCADE, related_name='posts')
+        Movie,
+        on_delete=models.CASCADE,
+        related_name='posts')
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE, related_name='posts')
+                             on_delete=models.CASCADE,
+                             related_name='posts')
     hashtags = models.ManyToManyField(Hashtag, related_name='posts')
 
     def __str__(self):

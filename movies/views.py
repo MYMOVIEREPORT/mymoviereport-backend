@@ -6,8 +6,8 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from .serializers import (UserSerializer, GenreSerializer, MovieSerializer,
-                          MovieDetailSerializer, PostSerializer, PostCreateSerializer)
+from .serializers import (UserSerializer, GenreSerializer,
+                          MovieSerializer, PostSerializer, PostCreateSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from datetime import datetime, date, timedelta
@@ -66,7 +66,7 @@ def movies_entire(request):
 @permission_classes([AllowAny, ])
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
-    serializer = MovieDetailSerializer(movie)
+    serializer = MovieSerializer(movie)
     return JsonResponse(serializer.data)
 
 
@@ -115,10 +115,12 @@ def post_detail(request, post_id):
         if request.user == post.user:
             if request.method == 'PUT':
                 serializer = PostCreateSerializer(
-                    instance=post, data=request.data)
+                    instance=post,
+                    data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     post = serializer.save(
-                        movie_id=request.data.get('movie_id'), user=request.user)
+                        movie_id=request.data.get('movie_id'),
+                        user=request.user)
 
                     for hashtag in post.hashtags.all():
                         post.hashtags.remove(hashtag)
@@ -148,14 +150,16 @@ def update_db(request):
     for d in range(2):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
-            'boxOfficeResult').get('weeklyBoxOfficeList')
+            'boxOfficeResult').get(
+            'weeklyBoxOfficeList')
         if movie_res:
             for i in range(10):
                 movie_cd = movie_res[i].get('movieCd')
 
                 movie_detail_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key={movie_key}&movieCd={movie_cd}'
                 movie_detail_res = requests.get(movie_detail_url).json().get(
-                    'movieInfoResult').get('movieInfo')
+                    'movieInfoResult').get(
+                    'movieInfo')
 
                 title_ko = movie_detail_res.get('movieNm')
                 title_en = movie_detail_res.get('movieNmEn')
@@ -170,21 +174,23 @@ def update_db(request):
 
                 combined_naver_url = f'{naver_url}?query={title_ko}'
                 naver_res = requests.get(
-                    combined_naver_url, headers=headers).json().get('items')
+                    combined_naver_url,
+                    headers=headers).json().get('items')
                 if naver_res:
                     score = naver_res[0].get('userRating')
 
                     directors = naver_res[0].get('director').split('|')[:-1]
                     for director in directors:
-                        director = Director.objects.get_or_create(name=director)[
-                            0]
+                        director = Director.objects.get_or_create(
+                            name=director)[0]
 
                     actors = naver_res[0].get('actor').split('|')[:-1]
                     for actor in actors:
                         actor = Actor.objects.get_or_create(name=actor)[0]
 
                     naver_poster_number = naver_res[0].get(
-                        'link').split('=')[-1]
+                        'link').split(
+                        '=')[-1]
                     naver_poster = f'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode={naver_poster_number}'
                     poster = requests.get(naver_poster).text
                     soup = BeautifulSoup(poster, 'html.parser')
@@ -210,7 +216,9 @@ def update_db(request):
                     video_url = ''
 
                 movie, created = Movie.objects.get_or_create(
-                    title_ko=title_ko, title_en=title_en, score=score, poster_url=poster_url, video_url=video_url, genre=genre)
+                    title_ko=title_ko, title_en=title_en,
+                    score=score, poster_url=poster_url, video_url=video_url,
+                    genre=genre)
                 if created:
                     for director in directors:
                         director = get_object_or_404(Director, name=director)
