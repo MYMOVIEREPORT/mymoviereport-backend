@@ -134,82 +134,94 @@ def post_detail(request, post_id):
     return HttpResponse('잘못된 요청입니다.', status=403)
 
 
-# @api_view(['PUT'])
-# @permission_classes([IsAdminUser, ])
-# @authentication_classes([JSONWebTokenAuthentication, ])
-# def update_db(request):
-#     today = date.strftime(date.today(), '%Y%m%d')
+@api_view(['PUT'])
+@permission_classes([IsAdminUser, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def update_db(request):
+    today = date.strftime(date.today(), '%Y%m%d')
 
-#     movie_key = config('MOVIE_KEY')
-#     movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
+    movie_key = config('MOVIE_KEY')
+    naver_id = config('NAVER_ID')
+    naver_secret = config('NAVER_SECRET')
+    youtube_key = config('YOUTUBE_KEY')
 
-#     movie_res = requests.get(movie_url).json()
-#     for i in range(50):
-#         title_ko = movie_res.get('movieListResult').get(
-#             'movieList')[i].get('movieNm')
+    for d in range(1):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.
+        movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
+        movie_res = requests.get(movie_url).json().get(
+            'boxOfficeResult').get('weeklyBoxOfficeList')
+        if movie_res:
+            for i in range(10):
+                movie_cd = movie_res[i].get('movieCd')
 
-#         genre = movie_res.get('movieListResult').get(
-#             'movieList')[i].get('repGenreNm')
-#         genre = Genre.objects.get_or_create(name=genre)[0]
+                movie_detail_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key={movie_key}&movieCd={movie_cd}'
+                movie_detail_res = requests.get(movie_detail_url).json().get(
+                    'movieInfoResult').get('movieInfo')
 
-#         naver_id = config('NAVER_ID')
-#         naver_secret = config('NAVER_SECRET')
+                title_ko = movie_detail_res.get('movieNm')
+                title_en = movie_detail_res.get('movieNmEn')
+                genre = movie_detail_res.get('genres')[0].get('genreNm')
+                genre = Genre.objects.get_or_create(name=genre)[0]
 
-#         naver_url = 'https://openapi.naver.com/v1/search/movie.json'
-#         headers = {
-#             'X-Naver-Client-Id': naver_id,
-#             'X-Naver-Client-Secret': naver_secret
-#         }
+                naver_url = 'https://openapi.naver.com/v1/search/movie.json'
+                headers = {
+                    'X-Naver-Client-Id': naver_id,
+                    'X-Naver-Client-Secret': naver_secret
+                }
 
-#         combined_naver_url = f'{naver_url}?query={title_ko}'
-#         naver_res = requests.get(combined_naver_url, headers=headers).json()
+                combined_naver_url = f'{naver_url}?query={title_ko}'
+                naver_res = requests.get(
+                    combined_naver_url, headers=headers).json().get('items')
+                if naver_res:
+                    score = naver_res[0].get('userRating')
 
-#         if naver_res.get('items'):
-#             score = naver_res.get('items')[0].get('userRating')
+                    directors = naver_res[0].get('director').split('|')[:-1]
+                    for director in directors:
+                        director = Director.objects.get_or_create(name=director)[
+                            0]
 
-#             directors = naver_res.get('items')[0].get(
-#                 'director').split('|')[:-1]
-#             for director in directors:
-#                 director = Director.objects.get_or_create(name=director)[0]
+                    actors = naver_res[0].get('actor').split('|')[:-1]
+                    for actor in actors:
+                        actor = Actor.objects.get_or_create(name=actor)[0]
 
-#             actors = naver_res.get('items')[0].get('actor').split('|')[:-1]
-#             for actor in actors:
-#                 actor = Actor.objects.get_or_create(name=actor)[0]
+                    naver_poster_number = naver_res[0].get(
+                        'link').split('=')[-1]
+                    naver_poster = f'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode={naver_poster_number}'
+                    poster = requests.get(naver_poster).text
+                    soup = BeautifulSoup(poster, 'html.parser')
+                    img = soup.find('img')
+                    if img:
+                        poster_url = img.get('src')
+                else:
+                    score = 0
+                    directors = ''
+                    actors = ''
+                    poster_url = ''
 
-#             result_link = naver_res.get('items')[0].get('link').split('=')[-1]
-#             poster_link = f'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode={result_link}'
-#             poster = requests.get(poster_link).text
-#             soup = BeautifulSoup(poster, 'html.parser')
-#             img = soup.find('img')
-#             if img:
-#                 poster_url = img.get('src')
-#         else:
-#             score = 0
-#             directors = ''
-#             actors = ''
-#             poster_url = ''
+                youtube_url = 'https://www.googleapis.com/youtube/v3/search'
 
-#         youtube_key = config('YOUTUBE_KEY')
-#         youtube_url = 'https://www.googleapis.com/youtube/v3/search'
+                combined_youtube_url = f'{youtube_url}?part=snippet&q={title_ko}+예고편&type=video&key={youtube_key}'
+                youtube_res = requests.get(combined_youtube_url).json()
 
-#         combined_youtube_url = f'{youtube_url}?part=snippet&q={title_ko}&type=video&key={youtube_key}'
-#         youtube_res = requests.get(combined_youtube_url).json()
+                youtube_id_res = youtube_res.get('items')
+                if youtube_id_res:
+                    videoId = youtube_id_res[0].get('id').get('videoId')
+                    video_url = f'https://www.youtube.com/embed/{videoId}'
+                else:
+                    video_url = ''
 
-#         youtube_id_res = youtube_res.get('items')
-#         if youtube_id_res:
-#             videoId = youtube_id_res[0].get('id').get('videoId')
-#             video_url = f'https://www.youtube.com/embed/{videoId}'
-#         else:
-#             video_url = ''
+                movie, created = Movie.objects.get_or_create(
+                    title_ko=title_ko, title_en=title_en, score=score, poster_url=poster_url, video_url=video_url, genre=genre)
+                if created:
+                    for director in directors:
+                        director = get_object_or_404(Director, name=director)
+                        movie.directors.add(director)
+                    for actor in actors:
+                        actor = get_object_or_404(Actor, name=actor)
+                        movie.actors.add(actor)
 
-#         movie, created = Movie.objects.get_or_create(
-#             title_ko=title_ko, title_en=title_en, score=score, poster_url=poster_url, video_url=video_url, genre=genre)
-#         if created:
-#             for director in directors:
-#                 director = get_object_or_404(Director, name=director)
-#                 movie.directors.add(director)
-#             for actor in actors:
-#                 actor = get_object_or_404(Actor, name=actor)
-#                 movie.actors.add(actor)
+        str_time = f'{today}'
+        conv_time = datetime.strptime(
+            str_time, '%Y%m%d').date() - timedelta(weeks=1)
+        today = conv_time.strftime('%Y%m%d')
 
-#     return JsonResponse({'message': 'DB가 갱신되었습니다!'})
+    return JsonResponse({'message': 'DB가 갱신되었습니다!'})

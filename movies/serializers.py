@@ -50,7 +50,7 @@ class MovieDetailSerializer(serializers.ModelSerializer):
 class MovieSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = ['id', 'title', 'title_ko', 'poster_url', ]
+        fields = ['id', 'title_ko', 'title_en', 'poster_url', ]
 
 
 class HashtagSerializer(serializers.ModelSerializer):

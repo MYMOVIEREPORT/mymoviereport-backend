@@ -27,7 +27,7 @@ class Actor(models.Model):
 
 class Movie(models.Model):
     title_ko = models.CharField(max_length=200)
-    title = models.CharField(max_length=200)
+    title_en = models.CharField(max_length=200)
     score = models.FloatField()
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)
@@ -42,10 +42,10 @@ class Movie(models.Model):
 
 
 class Hashtag(models.Model):
-    tag = models.CharField(max_length=100)
+    hashtag = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.tag
+        return self.hashtag
 
 
 class Post(models.Model):
