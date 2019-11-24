@@ -64,6 +64,14 @@ def movies_entire(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
+def movies_new(request):
+    movies = Movie.objects.order_by('-created_at', '-id')[:10]
+    serializer = MovieSerializer(movies, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
 def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     serializer = MovieSerializer(movie)
