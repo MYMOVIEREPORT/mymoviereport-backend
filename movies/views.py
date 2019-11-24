@@ -163,8 +163,18 @@ def update_db(request):
 
                 title_ko = movie_detail_res.get('movieNm')
                 title_en = movie_detail_res.get('movieNmEn')
+
                 genre = movie_detail_res.get('genres')[0].get('genreNm')
                 genre = Genre.objects.get_or_create(name=genre)[0]
+
+                release_date = movie_detail_res.get('openDt')
+                release_date = f'{release_date[:4]}-{release_date[4:6]}-{release_date[6:]}'
+
+                watch_grade = movie_detail_res.get(
+                    'audits')[0].get(
+                    'watchGradeNm')
+                if not watch_grade:
+                    watch_grade = ''
 
                 naver_url = 'https://openapi.naver.com/v1/search/movie.json'
                 headers = {
@@ -218,7 +228,7 @@ def update_db(request):
                 movie, created = Movie.objects.get_or_create(
                     title_ko=title_ko, title_en=title_en,
                     score=score, poster_url=poster_url, video_url=video_url,
-                    genre=genre)
+                    genre=genre, release_date=release_date, watch_grade=watch_grade)
                 if created:
                     for director in directors:
                         director = get_object_or_404(Director, name=director)

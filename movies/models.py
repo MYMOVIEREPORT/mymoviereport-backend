@@ -32,6 +32,9 @@ class Movie(models.Model):
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)
     description = models.TextField()
+    release_date = models.DateField()
+    watch_grade = models.CharField(max_length=50)
+    created_at = models.DateField(auto_now_add=True)
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
