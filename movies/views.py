@@ -89,7 +89,9 @@ def movies_hot(request):
             movies[movie_id] += 1
         else:
             movies[movie_id] = 1
-    movies = sorted(list(movies.items()), key=lambda x: x[1])[:3]
+    movies = sorted(list(movies.items()),
+                    key=lambda x: x[1],
+                    reverse=True)[:3]
 
     hot_movies = [get_object_or_404(Movie, id=movie[0]) for movie in movies]
     serializer = MovieSerializer(hot_movies, many=True)
