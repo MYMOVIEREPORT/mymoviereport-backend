@@ -26,8 +26,8 @@ class Actor(models.Model):
 
 
 class Movie(models.Model):
-    title = models.CharField(max_length=200)
     title_ko = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)
     score = models.FloatField()
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)

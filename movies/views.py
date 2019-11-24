@@ -11,10 +11,10 @@ from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
                           MovieDetailSerializer, CreatePostSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render
+
 from bs4 import BeautifulSoup
 from decouple import config
-
 import requests
 
 # Create your views here.
@@ -32,8 +32,18 @@ def user_detail(request, user_id):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def user_posts(request, user_id):
+    user = get_object_or_404(get_user_model(), id=user_id)
+    posts = user.posts.all()
+    serializer = PostSerializer(posts, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
 @permission_classes([AllowAny, ])
-def all_genres(request):
+def genres_entire(request):
     genres = Genre.objects.all()
     serializer = GenreSerializer(genres, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -41,23 +51,7 @@ def all_genres(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def all_directors(request):
-    directors = Director.objects.all()
-    serializer = DirectorSerializer(directors, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny, ])
-def all_actors(request):
-    actors = Actor.objects.all()
-    serializer = ActorSerializer(actors, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-@api_view(['GET'])
-@permission_classes([AllowAny, ])
-def all_movies(request):
+def movies_entire(request):
     movies = Movie.objects.all()
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -65,7 +59,7 @@ def all_movies(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def some_movie(request, movie_id):
+def movie_detail(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     serializer = MovieDetailSerializer(movie)
     return JsonResponse(serializer.data)
@@ -75,16 +69,6 @@ def some_movie(request, movie_id):
 @permission_classes([AllowAny, ])
 def all_posts(request):
     posts = Post.objects.filter(published=True)
-    serializer = PostSerializer(posts, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, ])
-@authentication_classes([JSONWebTokenAuthentication, ])
-def user_posts(request, user_id):
-    user = get_object_or_404(get_user_model(), id=user_id)
-    posts = user.posts.all()
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 

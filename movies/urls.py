@@ -5,12 +5,10 @@ urlpatterns = [
     path('user/<int:user_id>/', views.user_detail),
     path('user/<int:user_id>/posts/', views.user_posts),
 
-    path('genres/', views.all_genres),
-    path('directors/', views.all_directors),
-    path('actors/', views.all_actors),
+    path('genres/', views.genres_entire),
 
-    path('movies/', views.all_movies),
-    path('movie/<int:movie_id>/', views.some_movie),
+    path('movies/', views.movies_entire),
+    path('movie/<int:movie_id>/', views.movie_detail),
 
     path('posts/', views.all_posts),
     path('<int:movie_id>/post/<int:post_id>/', views.post_detail),
