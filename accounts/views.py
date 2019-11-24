@@ -29,4 +29,4 @@ def signup(request):
         token = jwt_encode_handler(payload)
 
         return JsonResponse({'token': token})
-    return HttpResponse(status=400)  # 잘못된 입력에 따른 에러
+    return HttpResponse(status=400)
