@@ -47,7 +47,7 @@ class MovieDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SimpleMovieSerializer(serializers.ModelSerializer):
+class MovieSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ['id', 'title', 'title_ko', 'poster_url', ]
@@ -60,7 +60,7 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    movie = SimpleMovieSerializer()
+    movie = MovieSimpleSerializer()
     hashtags = HashtagSerializer(many=True)
 
     class Meta:
@@ -68,7 +68,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CreatePostSerializer(serializers.ModelSerializer):
+class PostCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['title', 'content', 'score', 'published', 'image', ]

@@ -6,9 +6,8 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from .serializers import (UserSerializer, GenreSerializer, DirectorSerializer,
-                          ActorSerializer, MovieSerializer, PostSerializer,
-                          MovieDetailSerializer, CreatePostSerializer)
+from .serializers import (UserSerializer, GenreSerializer, MovieSerializer,
+                          MovieDetailSerializer, PostSerializer, PostCreateSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from django.shortcuts import render
@@ -18,6 +17,13 @@ from decouple import config
 import requests
 
 # Create your views here.
+
+
+def hashtag_create(post, content):
+    for word in content:
+        if word.startswith('#'):
+            hashtag = Hashtag.objects.get_or_create(tag=word)[0]
+            post.hashtags.add(hashtag)
 
 
 @api_view(['GET'])
@@ -67,10 +73,27 @@ def movie_detail(request, movie_id):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def all_posts(request):
+def posts_entire(request):
     posts = Post.objects.filter(published=True)
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def post_create(request, movie_id):
+    movie = get_object_or_404(Movie, id=movie_id)
+    post = PostCreateSerializer(data=request.data)
+    if post.is_valid(raise_exception=True):
+        post = post.save(movie_id=movie.id, user=request.user)
+
+        content = request.data.get('content').split(' ')
+        hashtag_create(post, content)
+
+        serializer = PostSerializer(instance=post)
+        return JsonResponse(serializer.data)
+    return HttpResponse(status=400)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -83,42 +106,24 @@ def post_detail(request, movie_id, post_id):
     else:
         if request.user == post.user:
             if request.method == 'PUT':
-                post.title = request.data.dict().get('title')
-                post.content = request.data.dict().get('content')
-                post.score = request.data.dict().get('score')
-                post.published = request.data.dict().get('published')
-                post.image = request.data.dict().get('image')
-                for hashtag in post.hashtags.all():
-                    post.hashtags.remove(hashtag)
-                post_content = request.data.get('content').split(' ')
-                for word in post_content:
-                    if word.startswith('#'):
-                        hashtag = Hashtag.objects.get_or_create(tag=word)[0]
-                        post.hashtags.add(hashtag)
-                serializer = PostSerializer(post)
-                return JsonResponse(serializer.data)
+                serializer = PostCreateSerializer(
+                    instance=post, data=request.data)
+                if serializer.is_valid(raise_exception=True):
+                    post = serializer.save(
+                        movie_id=movie_id, user=request.user)
+
+                    for hashtag in post.hashtags.all():
+                        post.hashtags.remove(hashtag)
+
+                    content = request.data.get('content').split(' ')
+                    hashtag_create(post, content)
+
+                    serializer = PostSerializer(post)
+                    return JsonResponse(serializer.data)
             else:
                 post.delete()
                 return JsonResponse({'message': '삭제가 완료되었습니다.'})
     return HttpResponse('잘못된 요청입니다.', status=403)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated, ])
-@authentication_classes([JSONWebTokenAuthentication, ])
-def post_create(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
-    post = CreatePostSerializer(data=request.data)
-    if post.is_valid(raise_exception=True):
-        post_instance = post.save(movie_id=movie.id, user=request.user)
-        post_content = request.data.get('content').split(' ')
-        for word in post_content:
-            if word.startswith('#'):
-                hashtag = Hashtag.objects.get_or_create(tag=word)[0]
-                post_instance.hashtags.add(hashtag)
-        post = PostSerializer(instance=post_instance)
-        return JsonResponse(post.data)
-    return HttpResponse(status=400)
 
 
 @api_view(['PUT'])
