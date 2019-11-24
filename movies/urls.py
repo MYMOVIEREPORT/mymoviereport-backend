@@ -11,8 +11,8 @@ urlpatterns = [
     path('movie/<int:movie_id>/', views.movie_detail),
 
     path('posts/', views.posts_entire),
-    path('<int:movie_id>/post/create/', views.post_create),
-    path('<int:movie_id>/post/<int:post_id>/', views.post_detail),
+    path('post/create/', views.post_create),
+    path('post/<int:post_id>/', views.post_detail),
 
     path('update/db/', views.update_db),
 ]

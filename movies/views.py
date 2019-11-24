@@ -82,8 +82,8 @@ def posts_entire(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
-def post_create(request, movie_id):
-    movie = get_object_or_404(Movie, id=movie_id)
+def post_create(request):
+    movie = get_object_or_404(Movie, id=request.data.get('movie_id'))
     post = PostCreateSerializer(data=request.data)
     if post.is_valid(raise_exception=True):
         post = post.save(movie_id=movie.id, user=request.user)
@@ -98,7 +98,7 @@ def post_create(request, movie_id):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([AllowAny, ])
-def post_detail(request, movie_id, post_id):
+def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.method == 'GET':
         serializer = PostSerializer(post)
@@ -110,7 +110,7 @@ def post_detail(request, movie_id, post_id):
                     instance=post, data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     post = serializer.save(
-                        movie_id=movie_id, user=request.user)
+                        movie_id=request.data.get('movie_id'), user=request.user)
 
                     for hashtag in post.hashtags.all():
                         post.hashtags.remove(hashtag)
