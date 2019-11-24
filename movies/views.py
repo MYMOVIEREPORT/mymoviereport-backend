@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
+from django.db.models import Q
+from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -21,7 +23,7 @@ import requests
 def hashtag_create(post, content):
     for word in content:
         if word.startswith('#'):
-            hashtag = Hashtag.objects.get_or_create(tag=word)[0]
+            hashtag = Hashtag.objects.get_or_create(hashtag=word)[0]
             post.hashtags.add(hashtag)
 
 
@@ -67,6 +69,30 @@ def movies_entire(request):
 def movies_new(request):
     movies = Movie.objects.order_by('-created_at', '-id')[:10]
     serializer = MovieSerializer(movies, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def movies_hot(request):
+    today = timezone.now()
+    lastweek = today - timedelta(weeks=1)
+
+    posts = Post.objects.filter(
+        Q(created_at__gte=lastweek) &
+        Q(created_at__lte=today))
+
+    movies = {}
+    for post in posts:
+        movie_id = post.movie.id
+        if movie_id in movies:
+            movies[movie_id] += 1
+        else:
+            movies[movie_id] = 1
+    movies = sorted(list(movies.items()), key=lambda x: x[1])[:3]
+
+    hot_movies = [get_object_or_404(Movie, id=movie[0]) for movie in movies]
+    serializer = MovieSerializer(hot_movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 

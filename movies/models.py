@@ -34,7 +34,7 @@ class Movie(models.Model):
     description = models.TextField()
     release_date = models.DateField()
     watch_grade = models.CharField(max_length=50)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
@@ -67,6 +67,7 @@ class Post(models.Model):
                              on_delete=models.CASCADE,
                              related_name='posts')
     hashtags = models.ManyToManyField(Hashtag, related_name='posts')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title

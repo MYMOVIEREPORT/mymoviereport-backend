@@ -9,6 +9,7 @@ urlpatterns = [
 
     path('movies/', views.movies_entire),
     path('movies/new/', views.movies_new),
+    path('movies/hot/', views.movies_hot),
     path('movie/<int:movie_id>/', views.movie_detail),
     path('movie/<int:movie_id>/posts/', views.movie_posts),
 
