@@ -121,8 +121,13 @@ def user_recos(request, user_id):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def genres_entire(request):
-    genres = Genre.objects.all()
-    serializer = GenreSerializer(genres, many=True)
+    target = request.GET.get('target')
+    if target:
+        genre = get_object_or_404(Genre, id=target)
+        serializer = GenreSerializer(genre)
+    else:
+        genres = Genre.objects.all()
+        serializer = GenreSerializer(genres, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
