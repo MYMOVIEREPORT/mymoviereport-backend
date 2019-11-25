@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -183,95 +184,103 @@ def update_db(request):
     naver_secret = config('NAVER_SECRET')
     youtube_key = config('YOUTUBE_KEY')
 
-    for d in range(2):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
+    for d in range(100):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
             'boxOfficeResult').get(
             'weeklyBoxOfficeList')
-        if movie_res:
+        if movie_res != []:
             for i in range(10):
-                movie_cd = movie_res[i].get('movieCd')
+                movie_nm = movie_res[i].get('movieNm')
 
-                movie_detail_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key={movie_key}&movieCd={movie_cd}'
-                movie_detail_res = requests.get(movie_detail_url).json().get(
-                    'movieInfoResult').get(
-                    'movieInfo')
+                try:
+                    movie_instance = Movie.objects.get(title_ko=movie_nm)
+                except ObjectDoesNotExist:
+                    movie_cd = movie_res[i].get('movieCd')
 
-                title_ko = movie_detail_res.get('movieNm')
-                title_en = movie_detail_res.get('movieNmEn')
+                    movie_detail_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/movie/searchMovieInfo.json?key={movie_key}&movieCd={movie_cd}'
+                    movie_detail_res = requests.get(movie_detail_url).json().get('movieInfoResult')
+                    if movie_detail_res:
+                        movie_detail_res = movie_detail_res.get('movieInfo')
 
-                genre = movie_detail_res.get('genres')[0].get('genreNm')
-                genre = Genre.objects.get_or_create(name=genre)[0]
+                        title_ko = movie_detail_res.get('movieNm')
+                        title_en = movie_detail_res.get('movieNmEn')
 
-                release_date = movie_detail_res.get('openDt')
-                release_date = f'{release_date[:4]}-{release_date[4:6]}-{release_date[6:]}'
+                        genre = movie_detail_res.get('genres')[0].get('genreNm')
+                        genre = Genre.objects.get_or_create(name=genre)[0]
 
-                watch_grade = movie_detail_res.get(
-                    'audits')[0].get(
-                    'watchGradeNm')
-                if not watch_grade:
-                    watch_grade = ''
+                        open_dt = movie_detail_res.get('openDt')
+                        if open_dt:
+                            release_date = f'{open_dt[:4]}-{open_dt[4:6]}-{open_dt[6:]}'
+                        else:
+                            release_date = '9999-12-31'
 
-                naver_url = 'https://openapi.naver.com/v1/search/movie.json'
-                headers = {
-                    'X-Naver-Client-Id': naver_id,
-                    'X-Naver-Client-Secret': naver_secret
-                }
+                        audits = movie_detail_res.get('audits')
+                        if audits:
+                            watch_grade = audits[0].get('watchGradeNm')
+                        else:
+                            watch_grade = ''
 
-                combined_naver_url = f'{naver_url}?query={title_ko}'
-                naver_res = requests.get(
-                    combined_naver_url,
-                    headers=headers).json().get('items')
-                if naver_res:
-                    score = naver_res[0].get('userRating')
+                        naver_url = 'https://openapi.naver.com/v1/search/movie.json'
+                        headers = {
+                            'X-Naver-Client-Id': naver_id,
+                            'X-Naver-Client-Secret': naver_secret
+                        }
 
-                    directors = naver_res[0].get('director').split('|')[:-1]
-                    for director in directors:
-                        director = Director.objects.get_or_create(
-                            name=director)[0]
+                        combined_naver_url = f'{naver_url}?query={title_ko}'
+                        naver_res = requests.get(
+                            combined_naver_url,
+                            headers=headers).json().get('items')
+                        if naver_res:
+                            score = naver_res[0].get('userRating')
 
-                    actors = naver_res[0].get('actor').split('|')[:-1]
-                    for actor in actors:
-                        actor = Actor.objects.get_or_create(name=actor)[0]
+                            directors = naver_res[0].get('director').split('|')[:-1]
+                            for director in directors:
+                                director = Director.objects.get_or_create(
+                                    name=director)[0]
 
-                    naver_poster_number = naver_res[0].get(
-                        'link').split(
-                        '=')[-1]
-                    naver_poster = f'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode={naver_poster_number}'
-                    poster = requests.get(naver_poster).text
-                    soup = BeautifulSoup(poster, 'html.parser')
-                    img = soup.find('img')
-                    if img:
-                        poster_url = img.get('src')
-                else:
-                    score = 0
-                    directors = ''
-                    actors = ''
-                    poster_url = ''
+                            actors = naver_res[0].get('actor').split('|')[:-1]
+                            for actor in actors:
+                                actor = Actor.objects.get_or_create(name=actor)[0]
 
-                youtube_url = 'https://www.googleapis.com/youtube/v3/search'
+                            naver_poster_number = naver_res[0].get(
+                                'link').split(
+                                '=')[-1]
+                            naver_poster = f'https://movie.naver.com/movie/bi/mi/photoViewPopup.nhn?movieCode={naver_poster_number}'
+                            poster = requests.get(naver_poster).text
+                            soup = BeautifulSoup(poster, 'html.parser')
+                            img = soup.find('img')
+                            if img:
+                                poster_url = img.get('src')
+                        else:
+                            score = 0
+                            directors = ''
+                            actors = ''
+                            poster_url = ''
 
-                combined_youtube_url = f'{youtube_url}?part=snippet&q={title_ko}+예고편&type=video&key={youtube_key}'
-                youtube_res = requests.get(combined_youtube_url).json()
+                        youtube_url = 'https://www.googleapis.com/youtube/v3/search'
 
-                youtube_id_res = youtube_res.get('items')
-                if youtube_id_res:
-                    videoId = youtube_id_res[0].get('id').get('videoId')
-                    video_url = f'https://www.youtube.com/embed/{videoId}'
-                else:
-                    video_url = ''
+                        combined_youtube_url = f'{youtube_url}?part=snippet&q={title_ko}+예고편&type=video&key={youtube_key}'
+                        youtube_res = requests.get(combined_youtube_url).json()
 
-                movie, created = Movie.objects.get_or_create(
-                    title_ko=title_ko, title_en=title_en,
-                    score=score, poster_url=poster_url, video_url=video_url,
-                    genre=genre, release_date=release_date, watch_grade=watch_grade)
-                if created:
-                    for director in directors:
-                        director = get_object_or_404(Director, name=director)
-                        movie.directors.add(director)
-                    for actor in actors:
-                        actor = get_object_or_404(Actor, name=actor)
-                        movie.actors.add(actor)
+                        youtube_id_res = youtube_res.get('items')
+                        if youtube_id_res:
+                            videoId = youtube_id_res[0].get('id').get('videoId')
+                            video_url = f'https://www.youtube.com/embed/{videoId}'
+                        else:
+                            video_url = ''
+
+                        movie, created = Movie.objects.get_or_create(
+                            title_ko=title_ko, title_en=title_en,
+                            score=score, poster_url=poster_url, video_url=video_url,
+                            genre=genre, release_date=release_date, watch_grade=watch_grade)
+                        if created:
+                            for director in directors:
+                                director = get_object_or_404(Director, name=director)
+                                movie.directors.add(director)
+                            for actor in actors:
+                                actor = get_object_or_404(Actor, name=actor)
+                                movie.actors.add(actor)
 
         str_time = f'{today}'
         conv_time = datetime.strptime(
