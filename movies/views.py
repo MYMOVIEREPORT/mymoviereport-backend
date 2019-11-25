@@ -30,6 +30,35 @@ def hashtag_create(post, content):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
+def search(request, keywords):
+    result = {
+        'users': [], 'movies': []
+    }
+
+    keywords = keywords.split(' ')
+    for keyword in keywords:
+        users = get_user_model().objects.filter(username__contains=keyword)
+        for user in users:
+            result['users'].append({
+                'id': user.id,
+                'username': user.username,
+                'thumbnail': user.thumbnail
+            })
+
+        movies = Movie.objects.filter(title_ko__contains=keyword)
+        for movie in movies:
+            result['movies'].append({
+                'id': movie.id,
+                'title_ko': movie.title_ko,
+                'title_en': movie.title_en,
+                'poster_url': movie.poster_url
+            })
+
+    return JsonResponse(result)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
 def user_ranks(request):
     users = get_user_model().objects.annotate(
         user_posts=Count('posts')
@@ -44,10 +73,8 @@ def user_ranks(request):
 @authentication_classes([JSONWebTokenAuthentication, ])
 def user_detail(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
-    if request.user == user:
-        serializer = UserSerializer(user)
-        return JsonResponse(serializer.data)
-    return HttpResponse('허가되지않은 접근입니다.', status=403)
+    serializer = UserSerializer(user)
+    return JsonResponse(serializer.data)
 
 
 @api_view(['GET'])
