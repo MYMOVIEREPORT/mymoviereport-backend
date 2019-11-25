@@ -50,6 +50,34 @@ def user_posts(request, user_id):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def user_recos(request, user_id):
+    user = get_object_or_404(get_user_model(), id=user_id)
+    posts = user.posts.all()
+    if posts:
+        reco_dict = {}
+        for post in posts:
+            user_genre = post.movie.genre
+            if user_genre in reco_dict:
+                reco_dict[user_genre] += 1
+            else:
+                reco_dict[user_genre] = 1
+        
+        reco_genre, user_val = None, 0
+        for key, val in reco_dict.items():
+            if user_val < val:
+                user_val = val
+                reco_genre = key
+        
+        reco_movies = Movie.objects.filter(genre=reco_genre).order_by('-score')[:3]
+        serializer = MovieSerializer(reco_movies, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    else:
+        return JsonResponse({'message': '아직 추천에 필요한 포스트 정보가 존재하지 않습니다.'})
+
+
+@api_view(['GET'])
 @permission_classes([AllowAny, ])
 def genres_entire(request):
     genres = Genre.objects.all()
