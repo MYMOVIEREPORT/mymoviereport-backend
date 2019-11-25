@@ -290,7 +290,7 @@ def update_db(request):
     naver_secret = config('NAVER_SECRET')
     youtube_key = config('YOUTUBE_KEY')
 
-    for d in range(100):  # 최초 DB 생성을 위해서는 50으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
+    for d in range(100):  # 최초 DB 생성을 위해서는 100으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
         movie_res = requests.get(movie_url).json(
         ).get('boxOfficeResult').get('weeklyBoxOfficeList')
@@ -359,6 +359,19 @@ def update_db(request):
                                     name=actor
                                 )[0]
 
+                            link = naver_res[0].get('link')
+                            html = requests.get(link).text
+                            soup = BeautifulSoup(html, 'html.parser')
+                            head = soup.find('h5', {'class': 'h_tx_story'})
+                            body = soup.find('p', {'class': 'con_tx'})
+                            if head or body:
+                                head = '' if not head else head.text
+                                body = '' if not body else body.text
+
+                                description = head + '\n' + body.replace(
+                                    '\r', '\n'
+                                ).replace('\xa0', '')
+
                             naver_poster_number = naver_res[0].get(
                                 'link'
                             ).split('=')[-1]
@@ -373,6 +386,7 @@ def update_db(request):
                             directors = ''
                             actors = ''
                             poster_url = ''
+                            description = ''
 
                         youtube_url = 'https://www.googleapis.com/youtube/v3/search'
 
@@ -388,21 +402,21 @@ def update_db(request):
                         else:
                             video_url = ''
 
-                        movie, created = Movie.objects.get_or_create(
-                            title_ko=title_ko, title_en=title_en,
+                        movie = Movie.objects.create(
+                            title_ko=title_ko, title_en=title_en, description=description,
                             score=score, poster_url=poster_url, video_url=video_url,
                             genre=genre, release_date=release_date, watch_grade=watch_grade
                         )
-                        if created:
-                            for director in directors:
-                                director = get_object_or_404(
-                                    Director,
-                                    name=director
-                                )
-                                movie.directors.add(director)
-                            for actor in actors:
-                                actor = get_object_or_404(Actor, name=actor)
-                                movie.actors.add(actor)
+
+                        for director in directors:
+                            director = get_object_or_404(
+                                Director,
+                                name=director
+                            )
+                            movie.directors.add(director)
+                        for actor in actors:
+                            actor = get_object_or_404(Actor, name=actor)
+                            movie.actors.add(actor)
 
         str_time = f'{today}'
         conv_time = datetime.strptime(
