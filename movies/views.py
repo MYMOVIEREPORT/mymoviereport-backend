@@ -134,7 +134,20 @@ def genres_entire(request):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_entire(request):
+    offset = request.GET.get('offset')
+    limit = request.GET.get('limit')
+
     movies = Movie.objects.all()
+    if offset and limit:
+        offset, limit = int(offset), int(limit)
+        movies = movies[offset:offset + limit]
+    else:
+        if offset:
+            offset = int(offset)
+            movies = movies[offset:offset + 24]
+        elif limit:
+            limit = int(limit)
+            movies = movies[:limit]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
