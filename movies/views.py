@@ -209,7 +209,20 @@ def movie_posts(request, movie_id):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def posts_entire(request):
+    offset = request.GET.get('offset')
+    limit = request.GET.get('limit')
+
     posts = Post.objects.filter(published=True)
+    if offset and limit:
+        offset, limit = int(offset), int(limit)
+        posts = posts[offset:offset + limit]
+    else:
+        if offset:
+            offset = int(offset)
+            posts = posts[offset:offset + 24]
+        elif limit:
+            limit = int(limit)
+            posts = posts[:limit]
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
