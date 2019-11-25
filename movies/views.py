@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -24,8 +24,17 @@ import requests
 def hashtag_create(post, content):
     for word in content:
         if word.startswith('#'):
-            hashtag = Hashtag.objects.get_or_create(hashtag=word)[0]
-            post.hashtags.add(hashtag)
+            if len(word) > 1 and '#' not in word[1:]:
+                hashtag = Hashtag.objects.get_or_create(hashtag=word)[0]
+                post.hashtags.add(hashtag)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny, ])
+def user_ranks(request):
+    users = get_user_model().objects.annotate(user_posts=Count('posts')).order_by('-user_posts')[:10]
+    serializer = UserSerializer(users, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 
 @api_view(['GET'])
