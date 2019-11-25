@@ -1,7 +1,5 @@
 from django.db import models
-from django.contrib.auth import settings
-
-# Create your models here.
+from django.contrib.auth import get_user_model
 
 
 class Genre(models.Model):
@@ -38,7 +36,8 @@ class Movie(models.Model):
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
-        related_name='movies')
+        related_name='movies'
+    )
     directors = models.ManyToManyField(Director, related_name='movies')
     actors = models.ManyToManyField(Actor, related_name='movies')
 
@@ -62,10 +61,13 @@ class Post(models.Model):
     movie = models.ForeignKey(
         Movie,
         on_delete=models.CASCADE,
-        related_name='posts')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE,
-                             related_name='posts')
+        related_name='posts'
+    )
+    user = models.ForeignKey(
+        get_user_model(),
+        on_delete=models.CASCADE,
+        related_name='posts'
+    )
     hashtags = models.ManyToManyField(Hashtag, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
 

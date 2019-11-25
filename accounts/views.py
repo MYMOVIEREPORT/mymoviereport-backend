@@ -5,11 +5,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework_jwt.settings import api_settings
 
-from .serializers import UserSerializer
-
 from passlib.hash import django_pbkdf2_sha256
 
-# Create your views here.
+from .serializers import UserSerializer
 
 
 @api_view(['POST'])
