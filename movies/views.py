@@ -289,7 +289,7 @@ def post_create(request):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.method == 'GET':
-        serializer = PostSimpleSerializer(post)
+        serializer = PostSerializer(post)
         return JsonResponse(serializer.data)
     else:
         if request.user == post.user:
