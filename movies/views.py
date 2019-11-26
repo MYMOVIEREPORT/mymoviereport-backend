@@ -35,33 +35,8 @@ def search(request):
     keywords = request.GET.get('keywords')
     keywords = keywords.split(' ')
 
-    result = {
-        'users': [], 'directors': [], 'actors': [],
-        'movies': [], 'posts': []
-    }
+    result = {'movies': []}
     for keyword in keywords:
-        users = get_user_model().objects.filter(username__contains=keyword)
-        for user in users:
-            result['users'].append({
-                'id': user.id,
-                'username': user.username,
-                'thumbnail': user.thumbnail
-            })
-
-        directors = Director.objects.filter(name__contains=keyword)
-        for director in directors:
-            result['directors'].append({
-                'id': director.id,
-                'name': director.name,
-            })
-
-        actors = Actor.objects.filter(name__contains=keyword)
-        for actor in actors:
-            result['actors'].append({
-                'id': actor.id,
-                'name': actor.name,
-            })
-
         movies = Movie.objects.filter(
             Q(title_ko__contains=keyword) |
             Q(title_en__contains=keyword)
@@ -70,20 +45,8 @@ def search(request):
             result['movies'].append({
                 'id': movie.id,
                 'title_ko': movie.title_ko,
-                'title_en': movie.title_en,
-                'poster_url': movie.poster_url
-            })
-
-        posts = Post.objects.filter(
-            Q(title__contains=keyword) |
-            Q(content__contains=keyword)
-        )
-        for post in posts:
-            result['posts'].append({
-                'id': post.id,
-                'user_id': post.user.id,
-                'user': post.user.username,
-                'title': post.title,
+                'score': movie.score,
+                'poster_url': movie.poster_url,
             })
 
     return JsonResponse(result)
