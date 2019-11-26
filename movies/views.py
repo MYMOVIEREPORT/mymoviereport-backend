@@ -168,20 +168,21 @@ def genres_entire(request):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_entire(request):
-    offset = request.GET.get('offset')
-    limit = request.GET.get('limit')
+    page = request.GET.get('page')
+    items = request.GET.get('items')
 
     movies = Movie.objects.all()
-    if offset and limit:
-        offset, limit = int(offset), int(limit)
-        movies = movies[offset:offset + limit]
+    if page and items:
+        start = int(items) * (int(page) - 1)
+        movies = movies[start:start * 2]
     else:
-        if offset:
-            offset = int(offset)
-            movies = movies[offset:offset + 24]
-        elif limit:
-            limit = int(limit)
-            movies = movies[:limit]
+        if page:
+            start = 24 * (int(page) - 1)
+            movies = movies[start:start * 2]
+        elif items:
+            movies = movies[:int(items)]
+        else:
+            movies = movies[0:24]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
@@ -189,7 +190,7 @@ def movies_entire(request):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_new(request):
-    movies = Movie.objects.order_by('-created_at', '-id')[:10]
+    movies = Movie.objects.order_by('-created_at', '-id')[:12]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
@@ -216,7 +217,7 @@ def movies_hot(request):
         movies.items()),
         key=lambda x: x[1],
         reverse=True
-    )[:3]
+    )[:12]
 
     hot_movies = [get_object_or_404(Movie, id=movie[0]) for movie in movies]
     serializer = MovieSerializer(hot_movies, many=True)
