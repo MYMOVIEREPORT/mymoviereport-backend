@@ -116,7 +116,7 @@ def user_detail(request, user_id):
 def user_posts(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     posts = user.posts.all()
-    serializer = PostSimpleSerializer(posts, many=True)
+    serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -262,7 +262,7 @@ def posts_entire(request):
         else:
             posts = posts[0:24]
 
-    serializer = PostSimpleSerializer(posts, many=True)
+    serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -279,7 +279,7 @@ def post_create(request):
         content = request.data.get('content').split(' ')
         hashtag_create(post, content)
 
-        serializer = PostSimpleSerializer(instance=post)
+        serializer = PostSerializer(instance=post)
         return JsonResponse(serializer.data)
     return HttpResponse(status=400)
 
