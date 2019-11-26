@@ -222,7 +222,7 @@ def movies_hot(request):
     )[:12]
 
     hot_movies = [get_object_or_404(Movie, id=movie[0]) for movie in movies]
-    serializer = MovieSimpleSerializer(hot_movies, many=True)
+    serializer = MovieSerializer(hot_movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
