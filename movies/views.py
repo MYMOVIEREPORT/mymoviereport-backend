@@ -239,7 +239,7 @@ def movie_detail(request, movie_id):
 def movie_posts(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     posts = movie.posts.all()
-    serializer = PostSimpleSerializer(posts, many=True)
+    serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -298,6 +298,7 @@ def post_detail(request, post_id):
                     instance=post,
                     data=request.data
                 )
+                print(serializer)
 
                 if serializer.is_valid(raise_exception=True):
                     post = serializer.save(
