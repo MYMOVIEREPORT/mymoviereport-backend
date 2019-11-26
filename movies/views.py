@@ -9,7 +9,8 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
-from .serializers import (UserSerializer, GenreSerializer, MovieSerializer,
+from accounts.serializers import UserSerializer, UserSimpleSerializer
+from .serializers import (GenreSerializer, MovieSerializer,
                           PostSerializer, PostCreateSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
@@ -30,14 +31,16 @@ def hashtag_create(post, content):
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
-def search(request, keywords):
+def search(request):
+    keywords = request.GET.get('keywords')
     result = {
-        'users': [], 'movies': []
+        'users': [], 'directors': [], 'actors': [],
+        'movies': [], 'posts': []
     }
 
     keywords = keywords.split(' ')
     for keyword in keywords:
-        users = get_user_model().objects.filter(username__contains=keyword)
+        users = get_user_model().objects.filter(username__contains=keyword)[:3]
         for user in users:
             result['users'].append({
                 'id': user.id,
@@ -45,13 +48,40 @@ def search(request, keywords):
                 'thumbnail': user.thumbnail
             })
 
-        movies = Movie.objects.filter(title_ko__contains=keyword)
+        directors = Director.objects.filter(name__contains=keyword)[:3]
+        for director in directors:
+            result['directors'].append({
+                'id': director.id,
+                'name': director.name,
+            })
+
+        actors = Actor.objects.filter(name__contains=keyword)[:3]
+        for actor in actors:
+            result['actors'].append({
+                'id': actor.id,
+                'name': actor.name,
+            })
+
+        movies = Movie.objects.filter(
+            Q(title_ko__contains=keyword) |
+            Q(title_en__contains=keyword)
+        )[:3]
         for movie in movies:
             result['movies'].append({
                 'id': movie.id,
                 'title_ko': movie.title_ko,
                 'title_en': movie.title_en,
                 'poster_url': movie.poster_url
+            })
+
+        posts = Post.objects.filter(
+            Q(title__contains=keyword) |
+            Q(content__contains=keyword)
+        )[:3]
+        for post in posts:
+            result['posts'].append({
+                'id': post.id,
+                'title': post.title,
             })
 
     return JsonResponse(result)

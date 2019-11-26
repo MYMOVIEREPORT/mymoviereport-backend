@@ -1,10 +1,9 @@
 from django.urls import path
-
 from . import views
 
 
 urlpatterns = [
-    path('search/<str:keywords>/', views.search),
+    path('search/', views.search),
 
     path('user/ranks/', views.user_ranks),
     path('user/<int:user_id>/', views.user_detail),

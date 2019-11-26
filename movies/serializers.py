@@ -1,14 +1,7 @@
 from django.contrib.auth import get_user_model
-
-from rest_framework import serializers
-
 from .models import Genre, Director, Actor, Movie, Post, Hashtag
 
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ['id', 'username', 'email', 'age', 'thumbnail', ]
+from rest_framework import serializers
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -58,6 +51,12 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
+
+
+class PostSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'title_ko', 'title_en', 'score', 'poster_url', ]
 
 
 class PostCreateSerializer(serializers.ModelSerializer):

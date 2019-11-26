@@ -58,6 +58,8 @@ class Post(models.Model):
     score = models.FloatField()
     published = models.BooleanField()
     image = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     movie = models.ForeignKey(
         Movie,
         on_delete=models.CASCADE,
@@ -69,7 +71,6 @@ class Post(models.Model):
         related_name='posts'
     )
     hashtags = models.ManyToManyField(Hashtag, related_name='posts')
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
