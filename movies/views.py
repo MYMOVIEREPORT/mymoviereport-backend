@@ -244,20 +244,22 @@ def movie_posts(request, movie_id):
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def posts_entire(request):
-    offset = request.GET.get('offset')
-    limit = request.GET.get('limit')
+    page = request.GET.get('page')
+    items = request.GET.get('items')
 
     posts = Post.objects.filter(published=True)
-    if offset and limit:
-        offset, limit = int(offset), int(limit)
-        posts = posts[offset:offset + limit]
+    if page and items:
+        start = int(items) * (int(page) - 1)
+        posts = posts[start:start * 2]
     else:
-        if offset:
-            offset = int(offset)
-            posts = posts[offset:offset + 24]
-        elif limit:
-            limit = int(limit)
-            posts = posts[:limit]
+        if page:
+            start = 24 * (int(page) - 1)
+            posts = posts[start:start * 2]
+        elif items:
+            posts = posts[:int(items)]
+        else:
+            posts = posts[0:24]
+
     serializer = PostSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
@@ -270,6 +272,7 @@ def post_create(request):
     post = PostCreateSerializer(data=request.data)
     if post.is_valid(raise_exception=True):
         post = post.save(movie_id=movie.id, user=request.user)
+        movie.watched_user.add(request.user)
 
         content = request.data.get('content').split(' ')
         hashtag_create(post, content)
