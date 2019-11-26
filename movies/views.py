@@ -10,8 +10,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from accounts.serializers import UserSerializer, UserSimpleSerializer
-from .serializers import (GenreSerializer, MovieSerializer, MovieSimpleSerializer,
-                          PostSerializer, PostSimpleSerializer, PostCreateSerializer)
+from .serializers import (GenreSerializer, MovieSerializer,
+                          PostSerializer, PostCreateSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from datetime import datetime, date, timedelta
@@ -148,7 +148,7 @@ def movies_entire(request):
             movies = movies[:int(items)]
         else:
             movies = movies[0:24]
-    serializer = MovieSimpleSerializer(movies, many=True)
+    serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
