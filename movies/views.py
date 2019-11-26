@@ -35,21 +35,40 @@ def search(request):
     keywords = request.GET.get('keywords')
     keywords = keywords.split(' ')
 
-    result = {'movies': []}
+    page = request.GET.get('page')
+    items = request.GET.get('items')
+
+    results = []
     for keyword in keywords:
         movies = Movie.objects.filter(
             Q(title_ko__contains=keyword) |
             Q(title_en__contains=keyword)
         )
         for movie in movies:
-            result['movies'].append({
+            results.append({
                 'id': movie.id,
                 'title_ko': movie.title_ko,
                 'score': movie.score,
                 'poster_url': movie.poster_url,
             })
 
-    return JsonResponse(result)
+    if page and items:
+        start = int(items) * (int(page) - 1)
+        end = start + int(items)
+    else:
+        if page:
+            start = 24 * (int(page) - 1)
+            end = start + 24
+        elif items:
+            start, end = 0, int(items)
+        else:
+            start, end = 0, 24
+
+    serializer = {'movies': []}
+    for result in results[start:end]:
+        serializer['movies'].append(result)
+
+    return JsonResponse(serializer)
 
 
 @api_view(['GET'])
