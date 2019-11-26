@@ -298,13 +298,9 @@ def post_detail(request, post_id):
                     instance=post,
                     data=request.data
                 )
-                print(serializer)
 
                 if serializer.is_valid(raise_exception=True):
-                    post = serializer.save(
-                        movie_id=request.data.get('movie_id'),
-                        user=request.use
-                    )
+                    post = serializer.save()
 
                     for hashtag in post.hashtags.all():
                         post.hashtags.remove(hashtag)
