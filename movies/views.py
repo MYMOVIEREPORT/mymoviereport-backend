@@ -33,14 +33,14 @@ def hashtag_create(post, content):
 @permission_classes([AllowAny, ])
 def search(request):
     keywords = request.GET.get('keywords')
+    keywords = keywords.split(' ')
+
     result = {
         'users': [], 'directors': [], 'actors': [],
         'movies': [], 'posts': []
     }
-
-    keywords = keywords.split(' ')
     for keyword in keywords:
-        users = get_user_model().objects.filter(username__contains=keyword)[:3]
+        users = get_user_model().objects.filter(username__contains=keyword)
         for user in users:
             result['users'].append({
                 'id': user.id,
@@ -48,14 +48,14 @@ def search(request):
                 'thumbnail': user.thumbnail
             })
 
-        directors = Director.objects.filter(name__contains=keyword)[:3]
+        directors = Director.objects.filter(name__contains=keyword)
         for director in directors:
             result['directors'].append({
                 'id': director.id,
                 'name': director.name,
             })
 
-        actors = Actor.objects.filter(name__contains=keyword)[:3]
+        actors = Actor.objects.filter(name__contains=keyword)
         for actor in actors:
             result['actors'].append({
                 'id': actor.id,
@@ -65,7 +65,7 @@ def search(request):
         movies = Movie.objects.filter(
             Q(title_ko__contains=keyword) |
             Q(title_en__contains=keyword)
-        )[:3]
+        )
         for movie in movies:
             result['movies'].append({
                 'id': movie.id,
@@ -77,7 +77,7 @@ def search(request):
         posts = Post.objects.filter(
             Q(title__contains=keyword) |
             Q(content__contains=keyword)
-        )[:3]
+        )
         for post in posts:
             result['posts'].append({
                 'id': post.id,
@@ -92,8 +92,9 @@ def search(request):
 def user_ranks(request):
     users = get_user_model().objects.annotate(
         user_posts=Count('posts')
-    ).order_by('-user_posts')[:10]
-
+    ).order_by(
+        '-user_posts'
+    )[:10]
     serializer = UserSerializer(users, many=True)
     return JsonResponse(serializer.data, safe=False)
 
@@ -139,8 +140,11 @@ def user_recos(request, user_id):
                 reco_genre = key
 
         reco_movies = Movie.objects.filter(
-            genre=reco_genre
-        ).order_by('-score')[:3]
+            ~Q(watched_user__in=[user.id]) &
+            Q(genre=reco_genre)
+        ).order_by(
+            '-score'
+        )[:12]
 
         serializer = MovieSerializer(reco_movies, many=True)
         return JsonResponse(serializer.data, safe=False)

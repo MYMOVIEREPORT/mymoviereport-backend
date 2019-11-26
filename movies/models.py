@@ -40,6 +40,10 @@ class Movie(models.Model):
     )
     directors = models.ManyToManyField(Director, related_name='movies')
     actors = models.ManyToManyField(Actor, related_name='movies')
+    watched_user = models.ManyToManyField(
+        get_user_model(),
+        related_name='watched_movie'
+    )
 
     def __str__(self):
         return self.title_ko
