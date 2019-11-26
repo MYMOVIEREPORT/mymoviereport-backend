@@ -10,8 +10,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 from accounts.serializers import UserSerializer, UserSimpleSerializer
-from .serializers import (GenreSerializer, MovieSerializer,
-                          PostSerializer, PostCreateSerializer)
+from .serializers import (GenreSerializer, MovieSerializer, MovieSimpleSerializer,
+                          PostSerializer, PostSimpleSerializer, PostCreateSerializer)
 from .models import Genre, Director, Actor, Movie, Hashtag, Post
 
 from datetime import datetime, date, timedelta
@@ -81,6 +81,8 @@ def search(request):
         for post in posts:
             result['posts'].append({
                 'id': post.id,
+                'user_id': post.user.id,
+                'user': post.user.username,
                 'title': post.title,
             })
 
@@ -93,9 +95,9 @@ def user_ranks(request):
     users = get_user_model().objects.annotate(
         user_posts=Count('posts')
     ).order_by(
-        '-user_posts'
+        '-user_posts', 'username'
     )[:10]
-    serializer = UserSerializer(users, many=True)
+    serializer = UserSimpleSerializer(users, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -114,7 +116,7 @@ def user_detail(request, user_id):
 def user_posts(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
     posts = user.posts.all()
-    serializer = PostSerializer(posts, many=True)
+    serializer = PostSimpleSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -174,23 +176,23 @@ def movies_entire(request):
     movies = Movie.objects.all()
     if page and items:
         start = int(items) * (int(page) - 1)
-        movies = movies[start:start * 2]
+        movies = movies[start:start + int(items)]
     else:
         if page:
             start = 24 * (int(page) - 1)
-            movies = movies[start:start * 2]
+            movies = movies[start:start + 24]
         elif items:
             movies = movies[:int(items)]
         else:
             movies = movies[0:24]
-    serializer = MovieSerializer(movies, many=True)
+    serializer = MovieSimpleSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_new(request):
-    movies = Movie.objects.order_by('-created_at', '-id')[:12]
+    movies = Movie.objects.order_by('-release_date', '-id')[:12]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
@@ -220,7 +222,7 @@ def movies_hot(request):
     )[:12]
 
     hot_movies = [get_object_or_404(Movie, id=movie[0]) for movie in movies]
-    serializer = MovieSerializer(hot_movies, many=True)
+    serializer = MovieSimpleSerializer(hot_movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -237,7 +239,7 @@ def movie_detail(request, movie_id):
 def movie_posts(request, movie_id):
     movie = get_object_or_404(Movie, id=movie_id)
     posts = movie.posts.all()
-    serializer = PostSerializer(posts, many=True)
+    serializer = PostSimpleSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -250,17 +252,17 @@ def posts_entire(request):
     posts = Post.objects.filter(published=True)
     if page and items:
         start = int(items) * (int(page) - 1)
-        posts = posts[start:start * 2]
+        posts = posts[start:start + int(items)]
     else:
         if page:
             start = 24 * (int(page) - 1)
-            posts = posts[start:start * 2]
+            posts = posts[start:start + 24]
         elif items:
             posts = posts[:int(items)]
         else:
             posts = posts[0:24]
 
-    serializer = PostSerializer(posts, many=True)
+    serializer = PostSimpleSerializer(posts, many=True)
     return JsonResponse(serializer.data, safe=False)
 
 
@@ -277,7 +279,7 @@ def post_create(request):
         content = request.data.get('content').split(' ')
         hashtag_create(post, content)
 
-        serializer = PostSerializer(instance=post)
+        serializer = PostSimpleSerializer(instance=post)
         return JsonResponse(serializer.data)
     return HttpResponse(status=400)
 
@@ -287,7 +289,7 @@ def post_create(request):
 def post_detail(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     if request.method == 'GET':
-        serializer = PostSerializer(post)
+        serializer = PostSimpleSerializer(post)
         return JsonResponse(serializer.data)
     else:
         if request.user == post.user:
@@ -328,7 +330,7 @@ def update_db(request):
     naver_secret = config('NAVER_SECRET')
     youtube_key = config('YOUTUBE_KEY')
 
-    for d in range(100):  # 최초 DB 생성을 위해서는 100으로 바꿔야합니다.(기본값은 이번주와 저번주를 확인하기 위해서 2로 고정)
+    for d in range(100):
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={movie_key}&targetDt={today}&weekGb=0'
         movie_res = requests.get(movie_url).json(
         ).get('boxOfficeResult').get('weeklyBoxOfficeList')
