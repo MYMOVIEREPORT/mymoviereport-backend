@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from accounts.serializers import UserSimpleSerializer
+from accounts.serializers import UserSerializer
 from .models import Genre, Director, Actor, Movie, Post, Hashtag
 
 from rest_framework import serializers
@@ -27,7 +27,7 @@ class MovieSerializer(serializers.ModelSerializer):
     genre = GenreSerializer()
     actors = ActorSerializer(many=True)
     directors = DirectorSerializer(many=True)
-    watched_user = UserSimpleSerializer(many=True)
+    watched_user = UserSerializer(many=True)
 
     class Meta:
         model = Movie
