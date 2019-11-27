@@ -28,12 +28,13 @@ class Movie(models.Model):
     title_ko = models.CharField(max_length=200)
     title_en = models.CharField(max_length=200)
     score = models.FloatField()
+    mini_poster_url = models.CharField(max_length=500)
     poster_url = models.CharField(max_length=500)
     video_url = models.CharField(max_length=500, null=True)
     description = models.TextField()
     release_date = models.DateField()
     watch_grade = models.CharField(max_length=50)
-    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     genre = models.ForeignKey(
         Genre,
         on_delete=models.CASCADE,
