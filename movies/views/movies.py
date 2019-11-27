@@ -49,8 +49,8 @@ def movies_hot(request):
     lastweek = today - timedelta(weeks=1)
 
     posts = Post.objects.filter(
-        Q(created_at__gte=lastweek) &
-        Q(created_at__lte=today))
+        Q(updated_at__gte=lastweek) &
+        Q(updated_at__lte=today))
 
     movies = {}
     for post in posts:
