@@ -44,7 +44,7 @@ def posts_entire(request):
 @permission_classes([IsAuthenticated, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
 def post_create(request):
-    movie = get_object_or_404(Movie, id=request.GET.get('movie_id'))
+    movie = get_object_or_404(Movie, id=request.data.get('movie_id'))
     post = PostCreateSerializer(data=request.data)
     if post.is_valid(raise_exception=True):
         post = post.save(movie_id=movie.id, user=request.user)
