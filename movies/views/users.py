@@ -1,9 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 from django.db.models import Q, Count
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
-from accounts.serializers import UserSerializer
+from accounts.serializers import UserSerializer, UserChangeSerializer
 from movies.serializers import MovieSerializer, PostSerializer
 from movies.models import Movie
 
@@ -24,13 +24,27 @@ def user_ranks(request):
     return JsonResponse(serializer.data, safe=False)
 
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
 def user_detail(request, user_id):
     user = get_object_or_404(get_user_model(), id=user_id)
-    serializer = UserSerializer(user)
-    return JsonResponse(serializer.data)
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return JsonResponse(serializer.data)
+    else:
+        if request.user == user:
+            if request.method == 'PUT':
+                serializer = UserChangeSerializer(user, request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    serializer = UserSerializer(user)
+                    return JsonResponse(serializer.data)
+            else:
+                username = user.username
+                user.delete()
+                return JsonResponse({'message': f'그동안 감사했습니다. {username}님. 다시 만나기를 기대하겠습니다.'})
+    return HttpResponse('잘못된 접근입니다.', status=403)
 
 
 @api_view(['GET'])
