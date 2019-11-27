@@ -89,4 +89,4 @@ def user_recos(request, user_id):
         serializer = MovieSerializer(reco_movies, many=True)
         return JsonResponse(serializer.data, safe=False)
     else:
-        return JsonResponse({'message': '아직 추천에 필요한 포스트 정보가 존재하지 않습니다.'})
+        return JsonResponse({'data': []})
