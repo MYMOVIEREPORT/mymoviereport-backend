@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Genre(models.Model):
@@ -59,7 +60,10 @@ class Hashtag(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
-    score = models.FloatField()
+    score = models.FloatField(
+        validators=(MinValueValidator(1),
+                    MaxValueValidator(10))
+    )
     published = models.BooleanField()
     image = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
