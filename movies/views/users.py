@@ -67,10 +67,11 @@ def user_recos(request, user_id):
         reco_dict = {}
         for post in posts:
             user_genre = post.movie.genre
+            user_score = post.score
             if user_genre in reco_dict:
-                reco_dict[user_genre] += 1
+                reco_dict[user_genre] += user_score
             else:
-                reco_dict[user_genre] = 1
+                reco_dict[user_genre] = user_score
 
         reco_genre, user_val = None, 0
         for key, val in reco_dict.items():
