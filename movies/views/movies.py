@@ -15,21 +15,7 @@ from datetime import timedelta
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_entire(request):
-    page = request.GET.get('page')
-    items = request.GET.get('items')
-
     movies = Movie.objects.all()
-    if page and items:
-        start = int(items) * (int(page) - 1)
-        movies = movies[start:start + int(items)]
-    else:
-        if page:
-            start = 24 * (int(page) - 1)
-            movies = movies[start:start + 24]
-        elif items:
-            movies = movies[:int(items)]
-        else:
-            movies = movies[0:24]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
