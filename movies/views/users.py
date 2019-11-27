@@ -89,4 +89,4 @@ def user_recos(request, user_id):
         serializer = MovieSerializer(reco_movies, many=True)
         return JsonResponse(serializer.data, safe=False)
     else:
-        return JsonResponse({'data': []})
+        return JsonResponse({})
