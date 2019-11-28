@@ -36,12 +36,12 @@ def search(request):
         end = start + int(items)
     else:
         if page:
-            start = 24 * (int(page) - 1)
-            end = start + 24
+            start = 12 * (int(page) - 1)
+            end = start + 12
         elif items:
             start, end = 0, int(items)
         else:
-            start, end = 0, 24
+            start, end = 0, 12
 
     serializer = {'movies': []}
     for result in results[start:end]:

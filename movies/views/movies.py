@@ -32,7 +32,7 @@ def movies_entire(request):
             score__lte=maxS
         )
 
-    movies = movies[24 * (page - 1):24 * page]
+    movies = movies[12 * (page - 1):12 * page]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 

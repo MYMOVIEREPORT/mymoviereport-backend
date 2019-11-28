@@ -23,7 +23,7 @@ def posts_entire(request):
     page = request.GET.get('page')
     items = request.GET.get('items')
 
-    posts = Post.objects.filter(published=True)
+    posts = Post.objects.filter(published=True).order_by('-id')
     if page and items:
         start = int(items) * (int(page) - 1)
         posts = posts[start:start + int(items)]
