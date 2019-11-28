@@ -121,7 +121,7 @@ def update_db(request):
     NAVER_SECRET = config('NAVER_SECRET')
     YOUTUBE = config('YOUTUBE_KEY')
 
-    for d in range(1000):
+    for d in range(60):
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={MOVIE}&targetDt={day}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
             'boxOfficeResult'
@@ -185,24 +185,100 @@ def update_db(request):
 @permission_classes([IsAdminUser, ])
 @authentication_classes([JSONWebTokenAuthentication, ])
 def delete_db(request):
+    # 서버를 돌리는 해 기준, 10년 전 영화 제거
+    movies = Movie.objects.all()
+
+    day = date.strftime(date.today(), '%Y%m%d')
+    past = datetime.strptime(f'{day}', '%Y%m%d') - timedelta(days=3650)
+    day = past.strftime('%Y-%m-%d')
+
+    movies = Movie.objects.filter(release_date__lte=day)
+    for movie in movies:
+        Movie.objects.get(id=movie.id).delete()
+
+    # 제목이 중복인 영화 제거
     movies = Movie.objects.all()
 
     titles = set()
     for movie in movies:
         titles.add(movie.title_ko)
 
-    dups = {}
+    dups = []
     for title in titles:
-        movies = Movie.objects.filter(title_ko=title)
+        movies = sorted(
+            Movie.objects.filter(title_ko=title),
+            key=lambda x: x.release_date,
+            reverse=True
+        )
         if len(movies) > 1:
-            for movie in movies:
-                if title in dups:
-                    dups[title] += [movie.id]
-                else:
-                    dups[title] = [movie.id]
+            for movie in movies[1:]:
+                dups += [movie.id]
 
-    for key, val in dups.items():
-        for num in val[1:]:
-            Movie.objects.get(id=num).delete()
+    for dup in dups:
+        Movie.objects.get(id=dup).delete()
+
+    # 포스터가 없는 영화 제거
+    movies = Movie.objects.all()
+
+    for movie in movies:
+        if not movie.poster_url:
+            Movie.objects.get(id=movie.id).delete()
+
+    # 포스터가 중복인 영화 제거
+    movies = Movie.objects.all()
+
+    posters = set()
+    for movie in movies:
+        posters.add(movie.poster_url)
+
+    dups = []
+    for poster in posters:
+        movies = sorted(
+            Movie.objects.filter(poster_url=poster),
+            key=lambda x: x.release_date,
+            reverse=True
+        )
+        if len(movies) > 1:
+            for movie in movies[1:]:
+                dups += [movie.id]
+
+    for dup in dups:
+        Movie.objects.get(id=dup).delete()
+
+    # 영화가 하나도 없는 배우 혹은 감독 제거
+    actors = Actor.objects.all()
+    for actor in actors:
+        if not actor.movies.all():
+            Actor.objects.get(id=actor.id).delete()
+
+    directors = Director.objects.all()
+    for director in directors:
+        if not director.movies.all():
+            Director.objects.get(id=director.id).delete()
+
+    # 이름이 중복되는 배우 혹은 감독 제거
+    actors = Actor.objects.all()
+
+    names = set()
+    for actor in actors:
+        names.add(actor.name)
+
+    for name in names:
+        actors = sorted(Actor.objects.filter(name=name))
+        if len(actors) > 1:
+            for actor in actors[1:]:
+                Actor.objects.get(id=actor.id).delete()
+
+    directors = Director.objects.all()
+
+    names = set()
+    for director in directors:
+        names.add(director.name)
+
+    for name in names:
+        directors = sorted(Director.objects.filter(name=name))
+        if len(directors) > 1:
+            for director in directors[1:]:
+                Director.objects.get(id=director.id).delete()
 
     return HttpResponse(status=200)
