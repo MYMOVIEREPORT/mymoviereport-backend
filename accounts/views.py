@@ -12,7 +12,7 @@ def signup(request):
     serializer = UserSerializer(data=request.data)
 
     if serializer.is_valid(raise_exception=True):
-        password = serializer.validated_data.get('password')
+        password = request.data.get('password')
         user = serializer.save()
         user.set_password(password)
         user.save()
