@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Q
 
 from movies.serializers import MovieSerializer, PostSerializer
-from movies.models import Movie, Post
+from movies.models import Genre, Movie, Post
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -15,21 +15,24 @@ from datetime import timedelta
 @api_view(['GET'])
 @permission_classes([AllowAny, ])
 def movies_entire(request):
-    page = request.GET.get('page')
-    items = request.GET.get('items')
+    page = int(request.GET.get('page'))
+    target = int(request.GET.get('target', 0))
+    maxS = int(request.GET.get('maxScore', 10))
+    minS = int(request.GET.get('minScore', 0))
 
-    movies = Movie.objects.all()
-    if page and items:
-        start = int(items) * (int(page) - 1)
-        movies = movies[start:start + int(items)]
+    if target != 0:
+        genre = Genre.objects.get(id=target)
+        movies = genre.movies.filter(
+            score__gte=minS,
+            score__lte=maxS
+        )
     else:
-        if page:
-            start = 24 * (int(page) - 1)
-            movies = movies[start:start + 24]
-        elif items:
-            movies = movies[:int(items)]
-        else:
-            movies = movies[0:24]
+        movies = Movie.objects.filter(
+            score__gte=minS,
+            score__lte=maxS
+        )
+
+    movies = movies[24 * (page - 1):24 * page]
     serializer = MovieSerializer(movies, many=True)
     return JsonResponse(serializer.data, safe=False)
 
