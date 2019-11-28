@@ -23,4 +23,5 @@ urlpatterns = [
     path('post/<int:post_id>/', posts.post_detail),
 
     path('update/db/', DB.update_db),
+    path('delete/db/', DB.delete_db),
 ]

@@ -179,3 +179,30 @@ def update_db(request):
         day = ctime.strftime('%Y%m%d')
 
     return HttpResponse(status=200)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser, ])
+@authentication_classes([JSONWebTokenAuthentication, ])
+def delete_db(request):
+    movies = Movie.objects.all()
+
+    titles = set()
+    for movie in movies:
+        titles.add(movie.title_ko)
+
+    dups = {}
+    for title in titles:
+        movies = Movie.objects.filter(title_ko=title)
+        if len(movies) > 1:
+            for movie in movies:
+                if title in dups:
+                    dups[title] += [movie.id]
+                else:
+                    dups[title] = [movie.id]
+
+    for key, val in dups.items():
+        for num in val[1:]:
+            Movie.objects.get(id=num).delete()
+
+    return HttpResponse(status=200)
