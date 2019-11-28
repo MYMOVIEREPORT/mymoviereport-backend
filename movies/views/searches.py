@@ -27,6 +27,7 @@ def search(request):
             results.append({
                 'id': movie.id,
                 'title_ko': movie.title_ko,
+                'title_en': movie.title_en,
                 'score': movie.score,
                 'poster_url': movie.poster_url,
             })
