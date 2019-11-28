@@ -27,8 +27,10 @@ def get_movie_info(MOVIE, code):
         title_ko = res.get('movieNm')
         title_en = res.get('movieNmEn')
 
-        genreNm = res.get('genres')[0].get('genreNm')
-        genre = Genre.objects.get_or_create(name=genreNm)[0]
+        genreNm = res.get('genres')
+        if genreNm:
+            genreNm = genreNm[0].get('genreNm')
+            genre = Genre.objects.get_or_create(name=genreNm)[0]
 
         openDt = res.get('openDt')
         if openDt:
@@ -119,7 +121,7 @@ def update_db(request):
     NAVER_SECRET = config('NAVER_SECRET')
     YOUTUBE = config('YOUTUBE_KEY')
 
-    for d in range(500):
+    for d in range(1000):
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={MOVIE}&targetDt={day}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
             'boxOfficeResult'
