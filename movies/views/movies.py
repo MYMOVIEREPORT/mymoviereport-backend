@@ -21,7 +21,7 @@ def movies_entire(request):
     minS = int(request.GET.get('minScore', 0))
 
     if target != 0:
-        genre = Genre.objects.get(id=target)
+        genre = get_object_or_404(Genre, id=target)
         movies = genre.movies.filter(
             score__gte=minS,
             score__lte=maxS
