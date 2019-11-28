@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import searches, users, movies, posts, DB
+from .views import searches, users, genres, movies, posts, DB
 
 
 urlpatterns = [
@@ -9,6 +9,8 @@ urlpatterns = [
     path('user/<int:user_id>/', users.user_detail),
     path('user/<int:user_id>/posts/', users.user_posts),
     path('user/<int:user_id>/recos/', users.user_recos),
+
+    path('genres/', genres.genres_entire),
 
     path('movies/', movies.movies_entire),
     path('movies/new/', movies.movies_new),
