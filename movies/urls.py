@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import searches, users, genres, movies, posts, DB
+from .views import searches, users, genres, movies, posts, db
 
 
 urlpatterns = [
@@ -22,6 +22,6 @@ urlpatterns = [
     path('post/create/', posts.post_create),
     path('post/<int:post_id>/', posts.post_detail),
 
-    path('update/db/', DB.update_db),
-    path('delete/db/', DB.delete_db),
+    path('update/db/', db.update_db),
+    path('delete/db/', db.delete_db),
 ]

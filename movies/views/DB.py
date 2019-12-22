@@ -121,7 +121,7 @@ def update_db(request):
     NAVER_SECRET = config('NAVER_SECRET')
     YOUTUBE = config('YOUTUBE_KEY')
 
-    for d in range(60):
+    for d in range(50):
         movie_url = f'http://www.kobis.or.kr/kobisopenapi/webservice/rest/boxoffice/searchWeeklyBoxOfficeList.json?key={MOVIE}&targetDt={day}&weekGb=0'
         movie_res = requests.get(movie_url).json().get(
             'boxOfficeResult'
