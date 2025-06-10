@@ -29,7 +29,7 @@ PyJWT==2.4.0
 pyparsing==2.4.5
 python-decouple==3.3
 pytz==2019.3
-requests==2.32.2
+requests==2.32.4
 ruamel.yaml==0.16.5
 ruamel.yaml.clib==0.2.0
 six==1.13.0
